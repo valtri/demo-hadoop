@@ -182,7 +182,7 @@ if \$hdfs_deployed {
     db_password            => 'hue_rw_password',
     https                  => false,
     https_hue              => true,
-	https_cachain          => '/etc/grid-security/ca-chain.pem',
+    https_cachain          => '/etc/grid-security/ca-chain.pem',
     secret                 => 'American president can\'t read',
     properties => {
       'desktop.app_blacklist'   => 'hbase,search,sentry,spark,sqoop,zookeeper',
@@ -228,6 +228,10 @@ EOF2
     chmod +x /etc/network/if-pre-up.d/ip*tables
     /etc/network/if-pre-up.d/iptables
     /etc/network/if-pre-up.d/ip6tables
+    # impala server can't recover when HDFS is initially installed
+    if [ "$DEPLOYED" = "true" ]; then
+      impmanager restart || :
+    fi
     ;;
   slave)
     # force proper IP addres for slave (no hostname for slave)
