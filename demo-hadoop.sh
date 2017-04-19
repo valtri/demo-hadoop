@@ -152,14 +152,6 @@ class { '::site_hadoop':
   version             => '5.11',
 }
 
-# required for hive, oozie
-class { '::mysql::bindings':
-  java_enable => true,
-}
-
-class { '::mysql::server':
-  root_password => 'mysql_rw_password',
-}
 EOF
 
 case $ROLE in
@@ -168,6 +160,15 @@ case $ROLE in
     export FACTER_fqdn="$MASTER"
 
     cat >> site.pp <<EOF
+# required for hive, oozie
+class { '::mysql::bindings':
+  java_enable => true,
+}
+
+class { '::mysql::server':
+  root_password => 'mysql_rw_password',
+}
+
 if \$hdfs_deployed {
   class { '::hue':
     hdfs_hostname          => \$master,
