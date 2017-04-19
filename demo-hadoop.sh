@@ -228,10 +228,6 @@ EOF2
     chmod +x /etc/network/if-pre-up.d/ip*tables
     /etc/network/if-pre-up.d/iptables
     /etc/network/if-pre-up.d/ip6tables
-    # impala server can't recover when HDFS is initially installed
-    if [ "$DEPLOYED" = "true" ]; then
-      impmanager restart || :
-    fi
     ;;
   slave)
     # force proper IP addres for slave (no hostname for slave)
@@ -258,3 +254,8 @@ puppet apply --test ./site.pp
 
 # no security needed for impala
 adduser impala users
+
+# impala server can't recover when HDFS is initially installed
+if [ "$DEPLOYED" = "true" ]; then
+  impmanager restart || :
+fi
