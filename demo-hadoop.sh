@@ -73,10 +73,14 @@ class { '::hadoop':
     yellowmanager => true,
   },
   properties => {
-    'dfs.replication'                                      => 2,
+    'dfs.replication'                                      => 3,
     'hadoop.security.auth_to_local'                        => '::undef',
     # need that without DNS infrastructure
     'dfs.namenode.datanode.registration.ip-hostname-check' => false,
+    # shorter heartbeat
+    'dfs.heartbeat.interval'                               => 2,
+    # shorter patience (2 minutes to detect offline datanode)
+    'dfs.namenode.heartbeat.recheck-interval'              => 60000,
   }
 }
 
