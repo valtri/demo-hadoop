@@ -26,15 +26,15 @@ ROLE="${4:-slave}"
 DEPLOYED="${5:-true}"
 
 # local IP dynamicaly (we need to know device)
-FQDN="`ip -4 addr show dev \"$DEVICE\" | grep inet  | awk '{print $2}' | cut -d/ -f1`"
+IP="`ip -4 addr show dev \"$DEVICE\" | grep inet  | awk '{print $2}' | cut -d/ -f1`"
 if [ $? -ne 0 ]; then
 	echo "Device $2 not found"
 	exit 1
 fi
 
-# puppet hadoop module role detections according to FQDN (hacky)
+# puppet hadoop module role detections is according to FQDN (hacky)
 if [ "$ROLE" = "slave" ]; then
-	SLAVES="['$FQDN']"
+	SLAVES="['$IP']"
 else
 	SLAVES='[]'
 fi
@@ -216,7 +216,7 @@ EOF
 :fail2ban-ssh - [0:0]
 
 -A INPUT -i lo -j ACCEPT
--A INPUT -i eth1 -j ACCEPT
+-A INPUT -i $DEVICE -j ACCEPT
 -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A INPUT -p icmp -j ACCEPT
 -A INPUT -p tcp -m multiport --dports 22 -j fail2ban-ssh
@@ -232,10 +232,12 @@ EOF2
     chmod +x /etc/network/if-pre-up.d/ip*tables
     /etc/network/if-pre-up.d/iptables
     /etc/network/if-pre-up.d/ip6tables
+
+    apt-get install -y python-snappy || :
     ;;
   slave)
     # force proper IP addres for slave (no hostname for slave)
-    export FACTER_fqdn="$FQDN"
+    export FACTER_fqdn="$IP"
 
     cat >> site.pp <<EOF
 include ::site_hadoop::role::slave
@@ -254,12 +256,17 @@ if ! grep -q "\\<$MASTER_IP\\>.*\\<$MASTER\\>" /etc/hosts; then
 fi
 
 # launch!
-puppet apply --test ./site.pp
+ret=0
+puppet apply --test ./site.pp || ret=$?
 
-# no security needed for impala
-adduser impala users
+if [ $ret -gt 1 ]; then
+  # no security needed for impala
+  adduser impala users
 
-# impala server can't recover when HDFS is initially installed
-if [ "$DEPLOYED" = "true" ]; then
-  impmanager restart || :
+  # impala server can't recover when HDFS is initially installed
+  if [ "$DEPLOYED" = "true" ]; then
+    impmanager restart || :
+  fi
 fi
+
+exit $ret

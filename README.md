@@ -14,7 +14,7 @@ Enabled Hadoop parts and add-ons:
 
 Supported platforms (2017):
 
-* Debian 7/wheezy (except master, [Bug #828836](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=828836))
+* Debian 7/wheezy (except master, [Bug #828836](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=828836), requires pre-installed puppet >= 3)
 * Debian 8/jessie
 * Ubuntu 14/trusty
 * Ubuntu 16/xenial
