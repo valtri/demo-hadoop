@@ -46,6 +46,12 @@ else
   hue_blacklist="hbase,search,sentry,spark,sqoop,zookeeper"
 fi
 
+# rack awareness (optional)
+if [ -f /usr/local/sbin/topology ]; then
+  topology="    'net.topology.script.file.name'                        => '/usr/local/sbin/topology',
+"
+fi
+
 cat > site.pp <<EOF
 \$master = '$MASTER'
 \$zookeepers = [
@@ -80,6 +86,7 @@ class { '::hadoop':
     yellowmanager => true,
   },
   properties => {
+    'dfs.namenode.acls.enabled'                            => true,
     'dfs.replication'                                      => 3,
     'hadoop.security.auth_to_local'                        => '::undef',
     # need that without DNS infrastructure
@@ -88,7 +95,7 @@ class { '::hadoop':
     'dfs.heartbeat.interval'                               => 2,
     # shorter patience (2 minutes to detect offline datanode)
     'dfs.namenode.heartbeat.recheck-interval'              => 60000,
-  }
+$topology  }
 }
 
 class { '::impala':

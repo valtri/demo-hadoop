@@ -36,6 +36,8 @@ Replace *$MASTER\_HOSTNAME*, *$MASTER\_IP*, and *$DEVICE* variables by proper va
 
 Device is the private interface to run Hadoop cluster.
 
+Optionaly network topology script can be installed as */usr/local/sbin/topology*.
+
 Note, the master has installation in two-steps.
 
 ## Master - preparation
