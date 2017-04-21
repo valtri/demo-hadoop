@@ -1,22 +1,22 @@
 #! /bin/bash -xe
 
 if [ -z "$3" ]; then
-	cat <<EOF
+  cat <<EOF
 Usage: $0 MASTER_HOSTNAME MASTER_IP DEVICE [ROLE [DEPLOYED]]"
 
   ROLE: master|slave
   DEPLOYED: true|false
 EOF
-	exit 1
+  exit 1
 fi
 
 if [ ! -d /etc/puppet/modules/hadoop ]; then
-	apt-get update
-	apt-get dist-upgrade -y
-	apt-get install -y --no-install-recommends puppet
+  apt-get update
+  apt-get dist-upgrade -y
+  apt-get install -y --no-install-recommends puppet
 
-	puppet module install cesnet-site_hadoop
-	puppet module install cesnet-hue
+  puppet module install cesnet-site_hadoop
+  puppet module install cesnet-hue
 fi
 
 MASTER="$1"
@@ -24,19 +24,26 @@ MASTER_IP="$2"
 DEVICE="$3"
 ROLE="${4:-slave}"
 DEPLOYED="${5:-true}"
+HBASE='false'
 
 # local IP dynamicaly (we need to know device)
 IP="`ip -4 addr show dev \"$DEVICE\" | grep inet  | awk '{print $2}' | cut -d/ -f1`"
 if [ $? -ne 0 ]; then
-	echo "Device $2 not found"
-	exit 1
+  echo "Device $2 not found"
+  exit 1
 fi
 
 # puppet hadoop module role detections is according to FQDN (hacky)
 if [ "$ROLE" = "slave" ]; then
-	SLAVES="['$IP']"
+  SLAVES="['$IP']"
 else
-	SLAVES='[]'
+  SLAVES='[]'
+fi
+
+if [ "$HBASE" = "true" ]; then
+  hue_blacklist="search,sentry,spark,sqoop,zookeeper"
+else
+  hue_blacklist="hbase,search,sentry,spark,sqoop,zookeeper"
 fi
 
 cat > site.pp <<EOF
@@ -143,7 +150,7 @@ class { '::spark':
 
 class { '::site_hadoop':
   # too ugly (binding not configurable, requires NAT everywhere)
-  hbase_enable        => false,
+  hbase_enable        => $HBASE,
   hue_enable          => true,
   impala_enable       => true,
   java_enable         => false,
@@ -189,7 +196,7 @@ if \$hdfs_deployed {
     https_cachain          => '/etc/grid-security/ca-chain.pem',
     secret                 => 'American president can\'t read',
     properties => {
-      'desktop.app_blacklist'   => 'hbase,search,sentry,spark,sqoop,zookeeper',
+      'desktop.app_blacklist'   => '$hue_blacklist',
     },
   }
 }
