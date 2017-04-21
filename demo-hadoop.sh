@@ -116,6 +116,7 @@ class { '::hbase':
   hdfs_hostname       => \$master,
   master_hostname     => \$master,
   slaves              => $SLAVES,
+  thrift_hostnames    => [ \$master ],
   zookeeper_hostnames => \$zookeepers,
   features            => {
     hbmanager => true,
@@ -212,6 +213,10 @@ include ::site_hadoop::role::hue
 include ::impala::server
 include ::hadoop::httpfs
 EOF
+    # for hue
+    if [ "$HBASE" = "true" ]; then
+      echo "include ::hbase::thriftserver" >> site.pp
+    fi
     # from external network permit only the status html pages
     cat > /etc/network/if-pre-up.d/iptables <<EOF2
 #! /bin/sh
