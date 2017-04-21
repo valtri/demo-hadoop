@@ -19,6 +19,11 @@ Supported platforms (2017):
 * Ubuntu 14/trusty
 * Ubuntu 16/xenial
 
+Network requirements (for all nodes):
+
+* all hostnames in DNS or host files
+* when enabling HBase, only one interface may be available, or use NAT PREROUTING rules
+
 CESNET puppet modules are used are used for installation and setup.
 
 # Deployment
@@ -26,7 +31,7 @@ CESNET puppet modules are used are used for installation and setup.
 Replace *$MASTER\_HOSTNAME*, *$MASTER\_IP*, and *$DEVICE* variables by proper values. For example:
 
     MASTER_HOSTNAME='hadoop-master'
-	MASTER_IP='192.168.0.1'
+    MASTER_IP='192.168.0.1'
     DEVICE='eth0'
 
 Device is the private interface to run Hadoop cluster.
