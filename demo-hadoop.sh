@@ -25,6 +25,7 @@ DEVICE="$3"
 ROLE="${4:-slave}"
 DEPLOYED="${5:-true}"
 HBASE='false'
+NFS='false'
 
 # local IP dynamicaly (we need to know device)
 IP="`ip -4 addr show dev \"$DEVICE\" | grep inet  | awk '{print $2}' | cut -d/ -f1`"
@@ -74,10 +75,11 @@ class { '::hadoop':
   yarn_hostname       => \$master,
   frontends           => [\$master],
   slaves              => $SLAVES,
-  zookeeper_hostnames => \$zookeepers,
   hue_hostnames       => [\$master],
   httpfs_hostnames    => [\$master],
+  nfs_hostnames       => [\$master],
   oozie_hostnames     => [\$master],
+  zookeeper_hostnames => \$zookeepers,
   acl                 => \$acl,
   hdfs_deployed       => \$hdfs_deployed,
   features            => {
@@ -95,6 +97,7 @@ class { '::hadoop':
     'dfs.heartbeat.interval'                               => 2,
     # shorter patience (2 minutes to detect offline datanode)
     'dfs.namenode.heartbeat.recheck-interval'              => 60000,
+    'nfs.exports.allowed.hosts'                            => "\$::fqdn rw; \$::ipaddress_${DEVICE} rw",
 $topology  }
 }
 
@@ -162,8 +165,7 @@ class { '::site_hadoop':
   hue_enable          => true,
   impala_enable       => true,
   java_enable         => false,
-  # TODO: authorization (as root)
-  nfs_frontend_enable => false,
+  nfs_frontend_enable => $NFS,
   oozie_enable        => true,
   users               => [
     'hawking',
